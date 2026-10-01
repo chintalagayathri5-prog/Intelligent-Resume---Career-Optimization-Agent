@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0F2043">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Intelligent Career Agent</title>
+
+    <!-- Inline Web Application Manifest for Standalone PWA Installation -->
+    <link rel="manifest"
+        href="data:application/manifest+json;utf8,%7B%22name%22%3A%22Intelligent%20Career%20Agent%22%2C%22short_name%22%3A%22CareerAgent%22%2C%22description%22%3A%22AI-Powered%20Resume%20Optimization%20%26%20Career%20Roadmap%20Assistant%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22orientation%22%3A%22portrait%22%2C%22theme_color%22%3A%22%230F2043%22%2C%22background_color%22%3A%22%23FFFFFF%22%7D">
+
+    <style>
+        /* Mobile Appbound CSS Engine */
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.75);
+            --bg-card-hover: rgba(51, 65, 85, 0.85);
+            --border-glass: rgba(255, 255, 255, 0.12);
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --accent: #06b6d4;
+            --accent-glow: rgba(6, 182, 212, 0.35);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --text-muted: #64748b;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 8px;
+            --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-family);
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html {
+            height: 100dvh;
+            overflow: hidden;
+            scrollbar-width: none;
+        }
+
+        body {
+            background-color: #060913;
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            max-height: 100dvh;
+            overflow: hidden;
+            touch-action: manipulation;
+            scrollbar-width: none;
+        }
+
+        ::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+        }
+
+        /* App Container locked to 480px mobile viewport */
+        #app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100dvh;
+            max-height: 100dvh;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            position: relative;
+            background: radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 60%);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.85);
+            overflow: hidden;
+        }
+
+        /* PWA Install Banner */
+        .pwa-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 150;
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--primary);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+            }
+
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        /* Fixed Mobile Header */
+        .app-header {
+            padding: 14px 18px;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-glass);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: white;
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        .brand-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #fff, #a5f3fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .profile-pill {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            border: 1px solid var(--border-glass);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        /* Screen View Area */
+        .screen-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            padding-bottom: 85px;
+            scrollbar-width: none;
+        }
+
+        /* Strict Single-Screen Display Isolation Logic */
+        .screen {
+            display: none !important;
+            opacity: 0;
+            transform: translateX(14px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+        }
+
+        .screen.active {
+            display: block !important;
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        #screen-splash.active {
+            display: flex !important;
+            flex-direction: column;
+        }
+
+        /* UI Cards & Elements */
+        .glass-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Dynamic Buttons & Touch Ripples */
+        .btn-primary {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 20px var(--primary-glow);
+            transition: transform 0.15s ease, filter 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+            filter: brightness(1.1);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-main);
+            border: 1px solid var(--border-glass);
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ripple-span {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            animation: touchRipple 500ms linear;
+            background-color: rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+        }
+
+        @keyframes touchRipple {
+            to {
+                transform: scale(3.5);
+                opacity: 0;
+            }
+        }
+
+        /* Choice Cards & Chips */
+        .choice-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 2px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-bottom: 12px;
+        }
+
+        .choice-card:active,
+        .choice-card.selected {
+            border-color: var(--accent);
+            background: rgba(6, 182, 212, 0.15);
+            transform: scale(0.98);
+        }
+
+        .chip-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .chip {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-glass);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 12px var(--primary-glow);
+        }
+
+        /* Inputs */
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+
+        .form-input {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-glass);
+            padding: 12px 14px;
+            border-radius: var(--radius-md);
+            color: var(--text-main);
+            font-size: 0.9rem;
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        /* Circular Progress & Readiness Metrics */
+        .score-circle-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 12px auto;
+        }
+
+        .score-circle-svg {
+            transform: rotate(-90deg);
+            width: 120px;
+            height: 120px;
+        }
+
+        .score-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.08);
+            stroke-width: 10;
+        }
+
+        .score-bar {
+            fill: none;
+            stroke: url(#scoreGradient);
+            stroke-width: 10;
+            stroke-dasharray: 314;
+            stroke-dashoffset: 110;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s ease;
+        }
+
+        .score-number {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: white;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-primary {
+            background: rgba(99, 102, 241, 0.2);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fde047;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Task & Roadmap Items */
+        .task-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .task-card.completed {
+            opacity: 0.55;
+            text-decoration: line-through;
+        }
+
+        .btn-check {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--accent);
+            background: transparent;
+            color: var(--accent);
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .task-card.completed .btn-check {
+            background: var(--success);
+            border-color: var(--success);
+            color: white;
+        }
+
+        /* Chat UI */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: calc(100dvh - 150px);
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-glass);
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 14px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            scrollbar-width: none;
+        }
+
+        .chat-bubble {
+            max-width: 84%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+
+        .chat-bubble.bot {
+            align-self: flex-start;
+            background: rgba(30, 41, 59, 0.95);
+            border: 1px solid var(--border-glass);
+            color: var(--text-main);
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-bubble.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-input-bar {
+            padding: 10px;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid var(--border-glass);
+            display: flex;
+            gap: 8px;
+        }
+
+        /* Fixed Bottom Navigation */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 68px;
+            background: rgba(15, 23, 42, 0.94);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border-glass);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            padding: 6px 0;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .nav-item.active .nav-icon {
+            transform: scale(1.15);
+            filter: drop-shadow(0 0 8px var(--accent-glow));
+        }
+
+        .nav-icon {
+            font-size: 1.25rem;
+            transition: transform 0.2s ease;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid var(--border-glass);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 420px;
+            padding: 22px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="app-container">
+
+        <!-- PWA Install Prompt Banner -->
+        <div id="pwa-install-banner" class="pwa-banner" style="display:none;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div class="brand-logo" style="width:30px; height:30px; font-size:0.75rem;">AI</div>
+                <div>
+                    <div style="font-weight:700; font-size:0.82rem; color:#fff;">Install CareerAgent App</div>
+                    <div style="font-size:0.72rem; color:var(--text-sub);">Add to Home Screen for 100% offline access
+                    </div>
+                </div>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+                <button class="btn-primary" style="padding:5px 12px; font-size:0.75rem; width:auto;"
+                    onclick="triggerPwaInstall()">Install</button>
+                <button
+                    style="background:none; border:none; color:var(--text-sub); font-size:1.1rem; cursor:pointer; padding:2px 6px;"
+                    onclick="dismissPwaBanner()">✕</button>
+            </div>
+        </div>
+
+        <!-- Fixed App Header -->
+        <header class="app-header" id="app-header">
+            <div class="brand">
+                <div class="brand-logo">AI</div>
+                <div class="brand-title">Career Agent</div>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <button class="btn-secondary" style="font-size:0.72rem; padding:4px 8px;" onclick="resetToDemo()">🔄
+                    Demo</button>
+                <div class="profile-pill" onclick="switchTab('profile')">
+                    <span>👤</span>
+                    <span id="user-pill-name">Ananya</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Screen Viewport Area (Strict Screen-by-Screen Isolation) -->
+        <main class="screen-area">
+
+            <!-- SCREEN 1: MANDATORY START SCREEN (LOGIN / SIGN UP) -->
+            <section id="screen-splash" class="screen active">
+                <div style="text-align:center; padding: 24px 0 16px 0;">
+                    <div class="brand-logo"
+                        style="width:64px; height:64px; font-size:1.6rem; margin:0 auto 12px auto; border-radius:18px;">
+                        AI</div>
+                    <h1
+                        style="font-size:1.4rem; font-weight:800; background: linear-gradient(to right, #fff, #a5f3fc); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                        Intelligent Career Agent</h1>
+                    <p style="color:var(--text-sub); font-size:0.82rem; margin-top:4px;">AI-Powered Resume & Skill Gap
+                        Optimization</p>
+                </div>
+
+                <div class="glass-card">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="login-email" class="form-input" placeholder="ananya@university.edu"
+                            value="ananya.cse28@university.edu">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-input" value="••••••••">
+                    </div>
+                    <button class="btn-primary" onclick="proceedToWelcome()">Log In / Sign Up ➔</button>
+                </div>
+
+                <div style="text-align:center;">
+                    <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">Or launch with
+                        pre-configured target profile:</p>
+                    <button class="btn-secondary" style="width:100%; border-color:var(--accent); color:var(--accent);"
+                        onclick="startQuickDemo()">
+                        ⚡ Load Pre-populated Demo (Ananya)
+                    </button>
+                </div>
+            </section>
+
+            <!-- SCREEN 2: WELCOME & RESUME DECISION -->
+            <section id="screen-welcome" class="screen">
+                <div style="text-align:center; margin-bottom:16px;">
+                    <h2 style="font-size:1.25rem;">Welcome, <span id="welcome-user-name"
+                            style="color:var(--accent);">Ananya</span>! 👋</h2>
+                    <p style="font-size:0.82rem; color:var(--text-sub);">Let's set up your personalized AI career
+                        roadmap.</p>
+                </div>
+
+                <h3 style="font-size:0.95rem; margin-bottom:12px; text-align:center;">Do you have a resume?</h3>
+
+                <div class="choice-card" onclick="selectResumePath(true)">
+                    <div style="font-size:2rem; margin-bottom:6px;">📄</div>
+                    <div style="font-weight:700; font-size:1rem; color:#fff;">Option A: Yes, I Have a Resume</div>
+                    <div style="font-size:0.78rem; color:var(--text-sub); margin-top:4px;">AI will parse your skills,
+                        experience, and projects automatically.</div>
+                </div>
+
+                <div class="choice-card" onclick="selectResumePath(false)">
+                    <div style="font-size:2rem; margin-bottom:6px;">📝</div>
+                    <div style="font-weight:700; font-size:1rem; color:#fff;">Option B: No, Create New Resume</div>
+                    <div style="font-size:0.78rem; color:var(--text-sub); margin-top:4px;">Enter your degree, skills,
+                        and target goals manually.</div>
+                </div>
+            </section>
+
+            <!-- SCREEN 3A: CREATE RESUME FORM -->
+            <section id="screen-create-resume" class="screen">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title" id="onboarding-profile-title">📝 Enter Profile Details</div>
+                    </div>
+
+                    <div id="onboarding-upload-box" style="display:none;" class="form-group">
+                        <label class="form-label">Upload Resume File (PDF / Word / TXT)</label>
+                        <input type="file" id="onboard-resume-input" accept=".pdf,.doc,.docx,.txt" class="form-input"
+                            onchange="handleOnboardResumeUpload(event)">
+                        <div id="onboard-upload-status" style="font-size:0.75rem; margin-top:6px;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="ob-name" class="form-input" value="Ananya">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" id="ob-email" class="form-input" value="ananya.cse28@university.edu">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" id="ob-phone" class="form-input" value="+91 9876543210">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Education / Degree</label>
+                        <input type="text" id="ob-edu" class="form-input" value="B.Tech Computer Science & Engineering">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">College / University</label>
+                        <input type="text" id="ob-college" class="form-input" value="Institute of Technology & Science">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Graduation Year</label>
+                        <input type="text" id="ob-grad" class="form-input" value="2028">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Technical Skills (comma separated)</label>
+                        <input type="text" id="ob-skills" class="form-input" value="C, Python, Basic Machine Learning">
+                    </div>
+
+                    <button class="btn-primary" onclick="proceedToRoleSelect()">Next: Select Target Role ➔</button>
+                </div>
+            </section>
+
+            <!-- SCREEN 4: CAREER GOAL SELECTION -->
+            <section id="screen-career-goal" class="screen">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title">🎯 Define Career Goal</div>
+                    </div>
+                    <p style="font-size:0.82rem; color:var(--text-sub); margin-bottom:14px;">Select or enter your target
+                        role for AI readiness scoring:</p>
+
+                    <div class="chip-group" style="margin-bottom:14px;">
+                        <div class="chip active" onclick="setRoleChip('AI/ML Engineer')">🤖 AI/ML Engineer</div>
+                        <div class="chip" onclick="setRoleChip('Data Scientist')">📊 Data Scientist</div>
+                        <div class="chip" onclick="setRoleChip('Web Developer')">💻 Web Developer</div>
+                        <div class="chip" onclick="setRoleChip('Data Engineer')">⚡ Custom Goal</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Target Role Title</label>
+                        <input type="text" id="ob-target-role" class="form-input" value="AI/ML Engineer">
+                    </div>
+
+                    <button class="btn-primary" onclick="finishOnboarding()">Generate AI Career Roadmap 🚀</button>
+                </div>
+            </section>
+
+            <!-- SCREEN 5: HOME DASHBOARD -->
+            <section id="screen-home" class="screen">
+                <!-- User Header Card -->
+                <div class="glass-card"
+                    style="display:flex; align-items:center; justify-content:space-between; padding:14px 18px;">
+                    <div>
+                        <h2 style="font-size:1.1rem;">Welcome back, <span id="dash-user-name">Ananya</span> 👋</h2>
+                        <div style="font-size:0.8rem; color:var(--accent); font-weight:600; margin-top:2px;"
+                            id="dash-target-role">AI/ML Engineer</div>
+                    </div>
+                    <div class="badge badge-primary">Active Benchmark</div>
+                </div>
+
+                <!-- Readiness & Health Metrics -->
+                <div class="glass-card" style="text-align:center;">
+                    <div class="card-title" style="justify-content:center; margin-bottom:14px;">⚡ Career Readiness Score
+                    </div>
+
+                    <div class="score-circle-wrapper">
+                        <svg class="score-circle-svg" viewBox="0 0 120 120">
+                            <defs>
+                                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#06b6d4" />
+                                    <stop offset="100%" stop-color="#6366f1" />
+                                </linearGradient>
+                            </defs>
+                            <circle class="score-bg" cx="60" cy="60" r="50"></circle>
+                            <circle class="score-bar" id="dash-score-circle" cx="60" cy="60" r="50"></circle>
+                        </svg>
+                        <div class="score-number" id="dash-readiness-val">64%</div>
+                    </div>
+
+                    <!-- Resume Health Bar -->
+                    <div style="margin-top:10px;">
+                        <div
+                            style="display:flex; justify-content:space-between; font-size:0.78rem; color:var(--text-sub); margin-bottom:4px;">
+                            <span>Resume Optimization Health</span>
+                            <span id="dash-resume-health" style="font-weight:700; color:var(--success);">72%</span>
+                        </div>
+                        <div style="height:6px; background:rgba(255,255,255,0.08); border-radius:4px; overflow:hidden;">
+                            <div id="dash-resume-health-bar"
+                                style="width:72%; height:100%; background:linear-gradient(90deg, var(--accent), var(--success)); border-radius:4px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Identified Skill Gaps -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title">⚠️ Identified Skill Gaps</div>
+                        <button class="btn-secondary" style="font-size:0.72rem; padding:3px 8px;"
+                            onclick="switchTab('career')">Matrix</button>
+                    </div>
+                    <div id="dash-gaps-container" class="chip-group">
+                        <!-- Dynamic Badges -->
+                    </div>
+                </div>
+
+                <!-- Active Roadmap Priority Task -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title">📌 Priority Action Task</div>
+                        <button class="btn-secondary" style="font-size:0.72rem; padding:3px 8px;"
+                            onclick="switchTab('roadmap')">All Tasks</button>
+                    </div>
+                    <div id="dash-active-task">
+                        <!-- Dynamic Task -->
+                    </div>
+                </div>
+
+                <!-- Next AI Recommendation Banner -->
+                <div style="background:rgba(6,182,212,0.12); border:1px solid rgba(6,182,212,0.3); padding:12px; border-radius:var(--radius-md); font-size:0.8rem; color:#a5f3fc; display:flex; gap:8px; align-items:center;"
+                    id="dash-ai-rec">
+                    🤖 AI Agent: Completing SQL & PyTorch roadmap tasks will boost readiness by +8%!
+                </div>
+            </section>
+
+            <!-- SCREEN: CAREER SKILL GAPS MATRIX -->
+            <section id="screen-career" class="screen">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title">🎯 Skill Gap Matrix</div>
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">Market benchmark comparison
+                        for target role.</p>
+                    <div id="skill-matrix-container"></div>
+                </div>
+            </section>
+
+            <!-- SCREEN: ROADMAP TASKS -->
+            <section id="screen-roadmap" class="screen">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title">🗺️ Learning Roadmap</div>
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">Complete tasks to boost your
+                        Career Readiness Score.</p>
+                    <div id="roadmap-tasks-list"></div>
+                </div>
+            </section>
+
+            <!-- SCREEN: RESUME STUDIO -->
+            <section id="screen-resume" class="screen">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title">📄 AI Resume Studio</div>
+                    </div>
+                    <p style="font-size:0.8rem; color:var(--text-sub); margin-bottom:12px;">AI-assisted bullet
+                        optimization with quantified metrics.</p>
+                    <div id="resume-bullets-container"></div>
+                </div>
+            </section>
+
+            <!-- SCREEN 6: AI CHATBOT ASSISTANT (Natural Conversational Tone & Single-Greeting Rule) -->
+            <section id="screen-ai" class="screen">
+                <div class="chat-container">
+                    <div class="card-header"
+                        style="padding:10px 14px; background:rgba(15,23,42,0.9); border-bottom:1px solid var(--border-glass);">
+                        <div class="card-title" style="font-size:0.88rem;">
+                            <span style="color:var(--accent);">🤖</span> AI Career Assistant
+                        </div>
+                    </div>
+
+                    <div id="chat-msg-area" class="chat-messages">
+                        <!-- Chat bubbles injected by JS -->
+                    </div>
+
+                    <!-- Quick Preset Prompts -->
+                    <div
+                        style="padding:8px; background:rgba(15,23,42,0.95); display:flex; gap:6px; overflow-x:auto; border-top:1px solid var(--border-glass); scrollbar-width:none;">
+                        <button class="badge badge-primary" style="white-space:nowrap; cursor:pointer;"
+                            onclick="askPreset('How to master Deep Learning fast?')">Deep Learning Plan</button>
+                        <button class="badge badge-primary" style="white-space:nowrap; cursor:pointer;"
+                            onclick="askPreset('SQL interview practice questions')">SQL Questions</button>
+                        <button class="badge badge-primary" style="white-space:nowrap; cursor:pointer;"
+                            onclick="askPreset('What project should I build next?')">Project Advice</button>
+                    </div>
+
+                    <div class="chat-input-bar">
+                        <input type="text" id="chat-input-text" class="form-input" placeholder="Ask AI Assistant..."
+                            onkeydown="if(event.key==='Enter') sendChatMessage()">
+                        <button class="btn-primary" style="width:auto; padding:0 16px;"
+                            onclick="sendChatMessage()">Send</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROFILE EDIT TAB -->
+            <section id="screen-profile" class="screen">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <div class="card-title">👤 Profile Settings</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" id="prof-name" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Target Role</label>
+                        <input type="text" id="prof-role" class="form-input">
+                    </div>
+                    <button class="btn-primary" onclick="saveProfileEdit()">Save Profile Changes</button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Persistent Fixed Bottom Navigation Bar (Visible only when logged in) -->
+        <nav class="bottom-nav" id="bottom-nav" style="display:none;">
+            <div id="nav-home" class="nav-item active" onclick="switchTab('home')">
+                <span class="nav-icon">🏠</span>
+                <span>Home</span>
+            </div>
+            <div id="nav-career" class="nav-item" onclick="switchTab('career')">
+                <span class="nav-icon">🎯</span>
+                <span>Career</span>
+            </div>
+            <div id="nav-roadmap" class="nav-item" onclick="switchTab('roadmap')">
+                <span class="nav-icon">🗺️</span>
+                <span>Roadmap</span>
+            </div>
+            <div id="nav-resume" class="nav-item" onclick="switchTab('resume')">
+                <span class="nav-icon">📄</span>
+                <span>Resume</span>
+            </div>
+            <div id="nav-ai" class="nav-item" onclick="switchTab('ai')">
+                <span class="nav-icon">🤖</span>
+                <span>AI Assistant</span>
+            </div>
+        </nav>
+
+    </div>
+
+    <!-- AI Re-evaluation Dynamic Modal Popup -->
+    <div id="reeval-modal" class="modal-overlay">
+        <div class="modal-box">
+            <div style="text-align:center; font-size:2.5rem; margin-bottom:6px;">🎉</div>
+            <h3 style="text-align:center; font-size:1.15rem; margin-bottom:8px;">AI Re-Evaluation Complete!</h3>
+            <p style="text-align:center; font-size:0.82rem; color:var(--text-sub); margin-bottom:16px;">
+                Task completed: <strong id="reeval-task-name" style="color:var(--text-main)">Task</strong>
+            </p>
+
+            <div
+                style="display:flex; justify-content:space-around; background:rgba(15,23,42,0.6); padding:12px; border-radius:var(--radius-md); margin-bottom:16px;">
+                <div style="text-align:center;">
+                    <div style="font-size:0.72rem; color:var(--text-sub);">Previous Score</div>
+                    <div id="reeval-old-score" style="font-weight:700; font-size:1.1rem; color:var(--text-sub);">64%
+                    </div>
+                </div>
+                <div style="font-size:1.2rem; display:flex; align-items:center;">➔</div>
+                <div style="text-align:center;">
+                    <div style="font-size:0.72rem; color:var(--text-sub);">New Readiness</div>
+                    <div id="reeval-new-score" style="font-weight:800; font-size:1.25rem; color:var(--success);">72%
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn-primary" onclick="closeModal()">Continue Learning 🚀</button>
+        </div>
+    </div>
+
+    <!-- Complete JavaScript Engine with Mandatory Login Launch & Natural Mentor Persona -->
+    <script>
+        const DEFAULT_PROFILE = {
+            onboarded: false,
+            name: "Ananya",
+            email: "ananya.cse28@university.edu",
+            phone: "+91 9876543210",
+            education: "B.Tech Computer Science & Engineering",
+            college: "Institute of Technology & Science",
+            gradYear: "2028",
+            skills: ["C", "Python", "Basic Machine Learning"],
+            projects: [
+                { name: "Student Performance Predictor", desc: "Predicts GPA using Scikit-learn Linear Regression model." },
+                { name: "PlantCare AI", desc: "OpenCV leaf disease classifier with basic CNN architecture." }
+            ],
+            certifications: ["Google AI Fundamentals"],
+            targetRole: "AI/ML Engineer",
+            readinessScore: 64,
+            resumeHealth: 72,
+            skillGaps: ["SQL", "Deep Learning", "Git/GitHub"],
+            tasks: [
+                { id: 1, title: "Master PyTorch Fundamentals & Tensors", time: "3.5 hrs", diff: "Medium", completed: false, gap: "Deep Learning", scoreBoost: 5 },
+                { id: 2, title: "SQL Joins, Aggregation & Database Schema Design", time: "2.0 hrs", diff: "Easy", completed: false, gap: "SQL", scoreBoost: 4 },
+                { id: 3, title: "Git Branching Workflow & GitHub Pull Requests", time: "1.5 hrs", diff: "Easy", completed: false, gap: "Git/GitHub", scoreBoost: 3 },
+                { id: 4, title: "Build & Deploy a ResNet Computer Vision Model", time: "4.5 hrs", diff: "Hard", completed: false, gap: "Deep Learning", scoreBoost: 8 },
+                { id: 5, title: "Optimize SQL Queries & Indexing Strategies", time: "3.0 hrs", diff: "Medium", completed: false, gap: "SQL", scoreBoost: 4 }
+            ],
+            resumeBullets: [
+                "Worked on machine learning model to predict student performance.",
+                "Created OpenCV project for leaf disease detection.",
+                "Learned Python programming and basic AI algorithms."
+            ],
+            chatHistory: [
+                { sender: "bot", text: "Hey! I'm your AI career mentor. Ready to help you level up your AI/ML Engineer skills and crush your goals!" }
+            ]
+        };
+
+        let appState = {};
+        let hasResumeChoice = false;
+
+        // Chatbot Single-Greeting State Flag
+        let chatGreetingShown = false;
+
+        function initApp() {
+            const saved = localStorage.getItem("career_agent_mobile_state");
+            if (saved) {
+                try { appState = JSON.parse(saved); } catch (e) { appState = JSON.parse(JSON.stringify(DEFAULT_PROFILE)); }
+            } else {
+                appState = JSON.parse(JSON.stringify(DEFAULT_PROFILE));
+                saveState();
+            }
+
+            if (appState.chatHistory && appState.chatHistory.length > 0) {
+                chatGreetingShown = true;
+            }
+
+            // MANDATORY START SCREEN: Always launch on Screen 1 (Login / Sign Up) upon start or reload!
+            showScreen('splash');
+            document.getElementById('bottom-nav').style.display = 'none';
+            document.getElementById('app-header').style.display = 'flex';
+        }
+
+        function saveState() {
+            localStorage.setItem("career_agent_mobile_state", JSON.stringify(appState));
+        }
+
+        function resetToDemo() {
+            appState = JSON.parse(JSON.stringify(DEFAULT_PROFILE));
+            appState.onboarded = true;
+            chatGreetingShown = true;
+            saveState();
+            showMainApp();
+        }
+
+        function startQuickDemo() {
+            resetToDemo();
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const sc = document.getElementById(`screen-${screenId}`);
+            if (sc) sc.classList.add('active');
+        }
+
+        function proceedToWelcome() {
+            const emailInput = document.getElementById('login-email').value;
+            if (emailInput) {
+                appState.email = emailInput;
+                const namePart = emailInput.split('@')[0];
+                appState.name = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+            }
+            document.getElementById('welcome-user-name').innerText = appState.name;
+            showScreen('welcome');
+        }
+
+        function selectResumePath(hasResume) {
+            hasResumeChoice = hasResume;
+            const titleEl = document.getElementById('onboarding-profile-title');
+            const uploadBox = document.getElementById('onboarding-upload-box');
+
+            if (hasResume) {
+                titleEl.innerText = "📄 Verify Extracted Resume Details";
+                uploadBox.style.display = "block";
+            } else {
+                titleEl.innerText = "📝 Enter Profile & Skill Details";
+                uploadBox.style.display = "none";
+            }
+
+            document.getElementById('ob-name').value = appState.name;
+            document.getElementById('ob-email').value = appState.email;
+            document.getElementById('ob-phone').value = appState.phone;
+            document.getElementById('ob-edu').value = appState.education;
+            document.getElementById('ob-college').value = appState.college;
+            document.getElementById('ob-grad').value = appState.gradYear;
+            document.getElementById('ob-skills').value = appState.skills.join(", ");
+
+            showScreen('create-resume');
+        }
+
+        function handleOnboardResumeUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const statusEl = document.getElementById('onboard-upload-status');
+            statusEl.innerHTML = `<span style="color:var(--accent)">⏳ AI Parsing '${file.name}'...</span>`;
+            setTimeout(() => {
+                statusEl.innerHTML = `<span style="color:var(--success)">✅ Parsed '${file.name}' successfully!</span>`;
+                appState.resumeHealth = 78;
+                saveState();
+            }, 800);
+        }
+
+        function proceedToRoleSelect() {
+            appState.name = document.getElementById('ob-name').value;
+            appState.email = document.getElementById('ob-email').value;
+            appState.phone = document.getElementById('ob-phone').value;
+            appState.education = document.getElementById('ob-edu').value;
+            appState.college = document.getElementById('ob-college').value;
+            appState.gradYear = document.getElementById('ob-grad').value;
+            appState.skills = document.getElementById('ob-skills').value.split(',').map(s => s.trim());
+
+            showScreen('career-goal');
+        }
+
+        function setRoleChip(roleName) {
+            document.getElementById('ob-target-role').value = roleName;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function finishOnboarding() {
+            appState.targetRole = document.getElementById('ob-target-role').value;
+            appState.onboarded = true;
+            appState.chatHistory = [
+                { sender: "bot", text: `Hey! I'm your AI career mentor. Ready to help you level up your ${appState.targetRole} skills and crush your goals!` }
+            ];
+            chatGreetingShown = true;
+            saveState();
+            showMainApp();
+        }
+
+        function showMainApp() {
+            document.getElementById('bottom-nav').style.display = 'flex';
+            document.getElementById('app-header').style.display = 'flex';
+            switchTab('home');
+            renderAll();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const targetScreen = document.getElementById(`screen-${tabId}`);
+            const targetNav = document.getElementById(`nav-${tabId}`);
+
+            if (targetScreen) targetScreen.classList.add('active');
+            if (targetNav) targetNav.classList.add('active');
+        }
+
+        function renderAll() {
+            renderHeader();
+            renderHome();
+            renderSkillGaps();
+            renderRoadmap();
+            renderResumeStudio();
+            renderProfileForm();
+            renderChat();
+        }
+
+        function renderHeader() {
+            document.getElementById('user-pill-name').innerText = appState.name;
+        }
+
+        function renderHome() {
+            document.getElementById('dash-user-name').innerText = appState.name;
+            document.getElementById('dash-target-role').innerText = appState.targetRole;
+            document.getElementById('dash-readiness-val').innerText = `${appState.readinessScore}%`;
+
+            const circleBar = document.getElementById('dash-score-circle');
+            if (circleBar) {
+                const offset = 314 - (314 * appState.readinessScore) / 100;
+                circleBar.style.strokeDashoffset = offset;
+            }
+
+            document.getElementById('dash-resume-health').innerText = `${appState.resumeHealth}%`;
+            document.getElementById('dash-resume-health-bar').style.width = `${appState.resumeHealth}%`;
+
+            const gapContainer = document.getElementById('dash-gaps-container');
+            if (gapContainer) {
+                gapContainer.innerHTML = appState.skillGaps.map(g => `<span class="badge badge-danger">Missing: ${g}</span>`).join(' ');
+            }
+
+            const activeTask = appState.tasks.find(t => !t.completed);
+            const activeContainer = document.getElementById('dash-active-task');
+            if (activeContainer) {
+                if (activeTask) {
+                    activeContainer.innerHTML = `
+                    <div class="task-card">
+                        <div>
+                            <div style="font-weight:700; font-size:0.88rem; color:#fff;">${activeTask.title}</div>
+                            <div style="font-size:0.75rem; color:var(--text-sub); margin-top:4px;">⏱️ ${activeTask.time} • <span class="badge badge-warning">${activeTask.diff}</span></div>
+                        </div>
+                        <button class="btn-check" onclick="completeTask(${activeTask.id})">✓</button>
+                    </div>
+                `;
+                } else {
+                    activeContainer.innerHTML = `<div style="color:var(--success); font-size:0.85rem;">🎉 All roadmap tasks completed! Run AI re-evaluation.</div>`;
+                }
+            }
+        }
+
+        function renderSkillGaps() {
+            const matrixContainer = document.getElementById('skill-matrix-container');
+            if (!matrixContainer) return;
+            const skillsList = [
+                { name: "Python", status: "Matched", req: "Advanced" },
+                { name: "Basic Machine Learning", status: "Matched", req: "Intermediate" },
+                { name: "SQL & Databases", status: appState.skillGaps.includes("SQL") ? "Missing" : "Matched", req: "Advanced" },
+                { name: "Deep Learning (PyTorch)", status: appState.skillGaps.includes("Deep Learning") ? "Missing" : "Matched", req: "Intermediate" },
+                { name: "Git & Version Control", status: appState.skillGaps.includes("Git/GitHub") ? "Missing" : "Matched", req: "Required" }
+            ];
+
+            matrixContainer.innerHTML = skillsList.map(s => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid var(--border-glass);">
+                <div>
+                    <div style="font-weight:600; font-size:0.85rem;">${s.name}</div>
+                    <div style="font-size:0.72rem; color:var(--text-sub);">Requirement: ${s.req}</div>
+                </div>
+                <span class="badge ${s.status === 'Matched' ? 'badge-success' : 'badge-danger'}">${s.status}</span>
+            </div>
+        `).join('');
+        }
+
+        function renderRoadmap() {
+            const list = document.getElementById('roadmap-tasks-list');
+            if (!list) return;
+            list.innerHTML = appState.tasks.map(t => `
+            <div class="task-card ${t.completed ? 'completed' : ''}">
+                <div>
+                    <div style="font-weight:700; font-size:0.85rem; color:#fff;">${t.title}</div>
+                    <div style="font-size:0.72rem; color:var(--text-sub); margin-top:2px;">⏱️ ${t.time} • +${t.scoreBoost}% Score</div>
+                </div>
+                <button class="btn-check" onclick="completeTask(${t.id})">${t.completed ? '✓' : ''}</button>
+            </div>
+        `).join('');
+        }
+
+        function renderResumeStudio() {
+            const container = document.getElementById('resume-bullets-container');
+            if (!container) return;
+            container.innerHTML = appState.resumeBullets.map((b, i) => `
+            <div style="background:rgba(15,23,42,0.6); padding:10px; border-radius:var(--radius-md); margin-bottom:8px; border:1px solid var(--border-glass);">
+                <div style="font-size:0.82rem; color:var(--text-main); margin-bottom:6px;">• ${b}</div>
+                <button class="btn-secondary" style="font-size:0.7rem; padding:4px 8px; border-color:var(--accent); color:var(--accent);" onclick="optimizeBullet(${i})">✨ AI Optimize Bullet</button>
+            </div>
+        `).join('');
+        }
+
+        function renderProfileForm() {
+            document.getElementById('prof-name').value = appState.name;
+            document.getElementById('prof-role').value = appState.targetRole;
+        }
+
+        function saveProfileEdit() {
+            appState.name = document.getElementById('prof-name').value;
+            appState.targetRole = document.getElementById('prof-role').value;
+            saveState();
+            renderAll();
+            alert("Profile updated successfully!");
+        }
+
+        function completeTask(taskId) {
+            const task = appState.tasks.find(t => t.id === taskId);
+            if (!task || task.completed) return;
+
+            task.completed = true;
+            const oldScore = appState.readinessScore;
+            appState.readinessScore = Math.min(100, appState.readinessScore + task.scoreBoost);
+
+            const remainingForGap = appState.tasks.filter(t => t.gap === task.gap && !t.completed);
+            if (remainingForGap.length === 0) {
+                appState.skillGaps = appState.skillGaps.filter(g => g !== task.gap);
+            }
+
+            saveState();
+            renderAll();
+
+            document.getElementById('reeval-task-name').innerText = task.title;
+            document.getElementById('reeval-old-score').innerText = `${oldScore}%`;
+            document.getElementById('reeval-new-score').innerText = `${appState.readinessScore}%`;
+            document.getElementById('reeval-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('reeval-modal').classList.remove('active');
+        }
+
+        function optimizeBullet(index) {
+            const bullets = [
+                "Architected PyTorch machine learning pipeline achieving 94.2% accuracy on validation benchmarks.",
+                "Developed computer vision model using OpenCV, optimizing inference latency by 38%.",
+                "Mastered core Python AI data structures and vectorized data manipulation workflows."
+            ];
+            appState.resumeBullets[index] = bullets[index % bullets.length];
+            appState.resumeHealth = Math.min(100, appState.resumeHealth + 5);
+            saveState();
+            renderResumeStudio();
+        }
+
+        // AI Assistant Chatbot Engine (Casual Mentor Tone & Single-Greeting State Flag)
+        function renderChat() {
+            const chatContainer = document.getElementById('chat-msg-area');
+            if (!chatContainer) return;
+            chatContainer.innerHTML = appState.chatHistory.map(msg => `
+            <div class="chat-bubble ${msg.sender}">${msg.text}</div>
+        `).join('');
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input-text');
+            const txt = input.value.trim();
+            if (!txt) return;
+
+            appState.chatHistory.push({ sender: 'user', text: txt });
+            input.value = '';
+            renderChat();
+
+            setTimeout(() => {
+                const reply = generateAiReply(txt);
+                appState.chatHistory.push({ sender: 'bot', text: reply });
+                saveState();
+                renderChat();
+            }, 500);
+        }
+
+        function askPreset(promptText) {
+            document.getElementById('chat-input-text').value = promptText;
+            sendChatMessage();
+        }
+
+        function generateAiReply(userPrompt) {
+            // Enforce state boolean: initial session greeting delivered
+            chatGreetingShown = true;
+            const promptLower = userPrompt.toLowerCase();
+
+            // Skill Gaps & Matrix
+            if (promptLower.includes("skill") || promptLower.includes("gap") || promptLower.includes("missing")) {
+                if (appState.skillGaps && appState.skillGaps.length > 0) {
+                    return `Right now your profile has ${appState.skillGaps.length} main gap(s): ${appState.skillGaps.join(", ")}. Tackle active roadmap tasks for these skills to push your readiness score beyond ${appState.readinessScore}%.`;
+                }
+                return `You've closed all major skill gaps for target role '${appState.targetRole}'! Focus on building portfolio projects and optimizing your resume bullets next.`;
+            }
+
+            // Deep Learning & PyTorch
+            if (promptLower.includes("deep learning") || promptLower.includes("pytorch") || promptLower.includes("machine learning")) {
+                const dlTask = appState.tasks ? appState.tasks.find(t => t.gap === "Deep Learning" && !t.completed) : null;
+                const taskHint = dlTask ? ` Jump right into roadmap task "${dlTask.title}".` : "";
+                return `For your goal as an ${appState.targetRole}, getting solid with PyTorch (Tensors -> Neural Nets -> CNNs) is essential.${taskHint}`;
+            }
+
+            // SQL & Databases
+            if (promptLower.includes("sql") || promptLower.includes("database") || promptLower.includes("query")) {
+                const sqlTask = appState.tasks ? appState.tasks.find(t => t.gap === "SQL" && !t.completed) : null;
+                const taskHint = sqlTask ? ` Try completing task "${sqlTask.title}" next.` : "";
+                return `Getting fluent with SQL JOINs, GROUP BY aggregations, and window functions is super important for your ${appState.targetRole} target.${taskHint}`;
+            }
+
+            // Resume Bullets
+            if (promptLower.includes("resume") || promptLower.includes("bullet") || promptLower.includes("ats")) {
+                return `Your resume health is sitting at ${appState.resumeHealth}%. Hop over to the Resume Studio tab and use '✨ AI Optimize Bullet' to inject clear metrics for skills like ${appState.skills.slice(0, 3).join(", ")}.`;
+            }
+
+            // Interview Prep
+            if (promptLower.includes("interview") || promptLower.includes("question") || promptLower.includes("prep")) {
+                return `Here's a great interview question for ${appState.targetRole}: 'What is the difference between Bias and Variance, and how does regularization prevent overfitting?' Focus on explaining model complexity trade-offs clearly.`;
+            }
+
+            // Roadmap & Tasks
+            if (promptLower.includes("roadmap") || promptLower.includes("task") || promptLower.includes("next")) {
+                const pending = appState.tasks ? appState.tasks.filter(t => !t.completed) : [];
+                if (pending.length > 0) {
+                    return `Your next immediate priority is "${pending[0].title}" (${pending[0].time}, ${pending[0].diff}). Finishing it will boost your readiness score by +${pending[0].scoreBoost}%.`;
+                }
+                return `Awesome job! All roadmap tasks are complete. Your readiness score is ${appState.readinessScore}%. Keep sharpening your project portfolio for ${appState.targetRole}.`;
+            }
+
+            // Default direct & casual mentor response (NO greetings, NO repeating user name)
+            const gapsList = (appState.skillGaps && appState.skillGaps.length > 0) ? appState.skillGaps.join(", ") : "none";
+            return `Targeting '${appState.targetRole}', your current readiness score is ${appState.readinessScore}% with active gaps: ${gapsList}. Focus on knocking out your active roadmap tasks and refining your resume bullets.`;
+        }
+
+        // PWA Installation & Touch Ripple Engine
+        let deferredPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const banner = document.getElementById('pwa-install-banner');
+            if (banner) banner.style.display = 'flex';
+        });
+
+        function triggerPwaInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => { deferredPrompt = null; dismissPwaBanner(); });
+            } else {
+                alert('To install on your home screen:\n\n• On iOS (Safari): Tap Share -> "Add to Home Screen"\n• On Android (Chrome): Tap Menu (⋮) -> "Install App"');
+            }
+        }
+
+        function dismissPwaBanner() {
+            const banner = document.getElementById('pwa-install-banner');
+            if (banner) banner.style.display = 'none';
+        }
+
+        function initTouchRipples() {
+            document.querySelectorAll('.nav-item, .btn-primary, .btn-secondary').forEach(el => {
+                el.addEventListener('click', function (e) {
+                    const circle = document.createElement('span');
+                    const diameter = Math.max(this.clientWidth, this.clientHeight);
+                    const radius = diameter / 2;
+                    const rect = this.getBoundingClientRect();
+                    circle.style.width = circle.style.height = `${diameter}px`;
+                    circle.style.left = `${e.clientX - rect.left - radius}px`;
+                    circle.style.top = `${e.clientY - rect.top - radius}px`;
+                    circle.classList.add('ripple-span');
+                    const existing = this.getElementsByClassName('ripple-span')[0];
+                    if (existing) existing.remove();
+                    this.appendChild(circle);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            initTouchRipples();
+        });
+    </script>
+
+</body>
+
+</html>
